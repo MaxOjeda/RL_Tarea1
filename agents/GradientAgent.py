@@ -2,27 +2,26 @@ import numpy as np
 from agents.BaseAgent import BaseAgent
 
 class GradientBanditAgent(BaseAgent):
-    def __init__(self, n_actions, alpha, baseline=True):
-        self.n_actions = n_actions
+    def __init__(self, num_of_actions, alpha, baseline=True):
+        self.num_of_actions = num_of_actions
         self.alpha = alpha
         self.baseline = baseline
-        self.preferences = np.zeros(n_actions)  # H(a)
-        self.action_probabilities = np.ones(n_actions) / n_actions  # π(a)
-        self.average_reward = 0.0  # R̄
+        self.H = np.zeros(num_of_actions)  # H(a)
+        self.pi_dist = np.ones(num_of_actions) / num_of_actions  # pi(a)
+        self.avg_reward = 0.0
         self.time_step = 0
 
     def get_action(self) -> int:
-        """Selecciona una acción basada en la distribución softmax."""
-        self.action_probabilities = np.exp(self.preferences) / np.sum(np.exp(self.preferences))
-        return np.random.choice(self.n_actions, p=self.action_probabilities)
+        self.pi_dist = np.exp(self.H) / np.sum(np.exp(self.H)) # Dist softmax
+        return np.random.choice(self.num_of_actions, p=self.pi_dist)
 
     def learn(self, action, reward) -> None:
-        """Actualiza las preferencias basadas en la acción tomada y la recompensa recibida."""
         self.time_step += 1
         if self.baseline:
-            self.average_reward += (reward - self.average_reward) / self.time_step
+            self.avg_reward += (reward - self.avg_reward) / self.time_step
 
-        baseline = self.average_reward if self.baseline else 0
-        one_hot = np.zeros(self.n_actions)
+        baseline = self.avg_reward if self.baseline else 0
+        # Actualizar valores simultaneamente
+        one_hot = np.zeros(self.num_of_actions)
         one_hot[action] = 1
-        self.preferences += self.alpha * (reward - baseline) * (one_hot - self.action_probabilities)
+        self.H += self.alpha * (reward - baseline) * (one_hot - self.pi_dist)

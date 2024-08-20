@@ -26,7 +26,7 @@ if __name__ == "__main__":
     for i in range(4):
         results = BanditResults()
         for run_id in range(NUM_OF_RUNS):
-            bandit = BanditEnv(seed=run_id, mean=0)
+            bandit = BanditEnv(seed=run_id, mean=4)
             num_of_arms = bandit.action_space
             agent = GradientBanditAgent(num_of_arms, alpha=parameters[i][0], baseline=parameters[i][1])  # here you might change the agent that you want to use
             best_action = bandit.best_action
